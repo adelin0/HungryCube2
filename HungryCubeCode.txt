@@ -1,0 +1,245 @@
+///////////////////////////////General Script//////////////////////////////////////////////
+public class GeneralScript : MonoBehaviour
+{
+    public static float bottom;
+    public static float top;
+    public static float left;
+    public static float right;
+    public Transform apple;
+    
+    private int numApples = 20;
+    public int ApplesGo;
+
+    public float currentTime = 0;
+
+    public float startingTime = 20f;
+    public Text CountdownText;
+   // public int score;
+   // public Text scoreText;
+    public GameObject gameoverptr;
+    public GameObject youWinPtr;
+   
+    public static bool gameOver;
+    public static bool youWin;
+
+    public GameObject Field;
+    void Start()
+    {
+        ApplesGo = 0;
+
+        //     CountdownText.text = "0";
+        //     currentTime = startingTime;
+        youWinPtr.GetComponent<SpriteRenderer>().enabled = false;
+       gameOver = false;
+       gameoverptr.GetComponent<SpriteRenderer>().enabled = false;
+
+
+        top = Camera.main.orthographicSize;
+        bottom = -top;
+        right = top * Camera.main.aspect;
+        left = -right;
+        for (int i = 0; i < numApples; i++)
+        {
+            float randomX = Random.Range(left,right);
+            float randomY = Random.Range(top, bottom);
+            Vector3 position = new Vector3(randomX, randomY, -1);
+            Instantiate(apple, position, transform.rotation);
+
+           
+        }
+    }
+
+    void Update()
+    {
+        print("printed");
+
+        currentTime += Time.deltaTime;
+        int time = (int) (startingTime - currentTime); //casting
+        CountdownText.text = "" + time;
+
+        if (time == 0)
+        {
+            GameObject.Find("Main Camera").GetComponent<GeneralScript>().GameOver();
+        }
+        if (ApplesGo == numApples)
+        {
+            GameObject.Find("Main Camera").GetComponent<GeneralScript>().YouWin();
+        }
+
+
+        // resets game by pressing esc
+        if (Input.GetAxis("Cancel") != 0)
+            SceneManager.LoadScene("SampleScene");
+    }
+
+
+
+
+    public void GameOver()
+    {
+        //  print("game over");
+        gameoverptr.GetComponent<SpriteRenderer>().enabled = true;
+        Time.timeScale = 0;
+     
+    }
+    public void YouWin()
+    {
+        youWinPtr.GetComponent<SpriteRenderer>().enabled = true;
+        Time.timeScale = 0;
+     
+    }
+
+    public void AddTime()
+    {
+
+        print("addtime worked");
+        currentTime += 10;
+
+
+    }
+
+}
+///////////////////////////////Cube Script//////////////////////////////////////////////
+public class CubeScript : MonoBehaviour
+{
+   
+    public float cannonSpeed = 10.0f;
+    private Vector3 scale;
+    ///
+    public float width;
+    public float height;
+    ///
+    BoxCollider ColliderSize;
+    void Start()
+    {
+
+        width = .4f;
+        height = .4f;
+
+        ColliderSize = GetComponent<BoxCollider>();
+
+        transform.position = new Vector3(0, 0, -1);
+     //   scale = new Vector3(width, height, 0);
+    }
+
+
+    void Update()
+    {
+        scale = new Vector3(width, height, 0);
+        
+        transform.localScale = scale;
+        ColliderSize.size = new Vector3(width+1, height+1, 0);
+
+        float xtrans = Input.GetAxis("Horizontal") * Time.deltaTime * cannonSpeed;
+        float ytrans = Input.GetAxis("Vertical") * Time.deltaTime * cannonSpeed;
+        transform.Translate(xtrans,ytrans,0);
+        if (transform.position.x > GeneralScript.right)
+            transform.position = new Vector3(GeneralScript.right, transform.position.y, transform.position.z);
+
+        if (transform.position.y > GeneralScript.top)
+            transform.position = new Vector3(transform.position.x, GeneralScript.top, transform.position.z);
+
+        if (transform.position.y < GeneralScript.bottom)
+            transform.position = new Vector3(transform.position.x, GeneralScript.bottom, transform.position.z);
+
+
+        if (transform.position.x < GeneralScript.left)
+            transform.position = new Vector3(GeneralScript.left, transform.position.y, transform.position.z);
+    }
+  
+
+}
+///////////////////////////////Apple Script//////////////////////////////////////////////
+public class AppleScript : MonoBehaviour
+{
+   // public GameObject gameOver;
+
+    void Start()
+    {
+
+     //   float randomVal = Random.Range(.1f, .5f);
+     //   transform.localScale = new Vector3(randomVal, randomVal, randomVal);
+    }
+    void Update()
+    {
+        transform.Rotate(0, 0, 1f, Space.Self);
+        
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+     //  print("OnTriggerEnter");
+        if (other.tag.Equals("Cube"))
+        {
+         
+            for (int i = 0; i < 1; i++)
+            {
+                GameObject.Find("Cube").GetComponent<CubeScript>().width += .05f;
+                GameObject.Find("Cube").GetComponent<CubeScript>().height += .05f;
+            }
+
+            GameObject.Find("Main Camera").GetComponent<GeneralScript>().ApplesGo++;
+            Destroy(gameObject);
+        }
+    }
+}
+///////////////////////////////Sphere Script//////////////////////////////////////////////
+public class SphereScript : MonoBehaviour
+{
+
+
+    public static float bottom;
+    public static float top;
+    public static float left;
+    public static float right;
+
+    public float randomX;
+    public float randomY;
+
+    void Start()
+    {
+
+        top = Camera.main.orthographicSize;
+        bottom = -top;
+        right = top * Camera.main.aspect;
+        left = -right;
+
+        
+
+        randomX = Random.Range(left, right);
+        randomY = Random.Range(top, bottom);
+        print(randomX);
+        print(randomY);
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+       // GameObject.Find("Main Camera").GetComponent<GeneralScript>().AddTime();
+        transform.position = new Vector3(randomX, randomY, -1);
+    }
+    void OnTriggerEnter(Collider other)
+    {
+        print("OnTriggerEnter");
+        if (other.tag.Equals("Cube"))
+        {
+            print("Cube touched Sphere");
+            // Destroy(other.gameObject);    
+
+            //   other.GetComponent<CubeScript>().GetRidOfMe();
+            Destroy(gameObject);
+            //   GameObject.Find("Main Camera").GetComponent<GeneralScript>().currentTime+=10f;
+
+         //   GameObject.Find("Main Camera").GetComponent<GeneralScript>().AddTime();
+
+
+        }
+    }
+    
+
+
+ 
+}
+
+
